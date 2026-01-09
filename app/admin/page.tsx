@@ -1,0 +1,64 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, ShoppingBag, AlertCircle } from "lucide-react";
+import { db } from "@/lib/db";
+
+export default async function AdminDashboard() {
+    const [users, orders, products] = await Promise.all([
+        db.getUsers(),
+        db.getOrders(),
+        db.getProducts()
+    ]);
+
+    const pendingOrders = orders.filter(o => o.status === 'PENDING').length;
+    const outOfStock = products.filter(p => (p.stock || 0) <= 0).length;
+
+    return (
+        <div className="space-y-6">
+            <h2 className="text-3xl font-black text-[#122241] uppercase tracking-tighter">Panel de Control</h2>
+
+            <div className="grid gap-6 md:grid-cols-3">
+                <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-red-500/10 transition-colors"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-[#122241]">Pedidos Pendientes</CardTitle>
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-black text-[#122241]">{pendingOrders}</div>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                            Requieren atención inmediata
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#facc15]/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-[#facc15]/10 transition-colors"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-[#122241]">Usuarios Registrados</CardTitle>
+                        <Users className="h-4 w-4 text-[#facc15]" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-black text-[#122241]">{users.length}</div>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                            Total en plataforma
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-orange-500/10 transition-colors"></div>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-[#122241]">Sin Stock</CardTitle>
+                        <ShoppingBag className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-4xl font-black text-[#122241]">{outOfStock}</div>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                            Productos agotados (0 unidades)
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}
