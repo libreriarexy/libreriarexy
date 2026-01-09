@@ -19,12 +19,15 @@ import {
     Loader2,
     FileText,
     ChevronDown,
-    X
+    X,
+    Percent,
+    TrendingUp
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast-simplified";
 
 interface POSItem extends OrderItem {
     stock: number;
+    cost: number;
 }
 
 type DocumentType = "REMITO" | "NOTA_CREDITO" | "PRESUPUESTO";
@@ -38,6 +41,7 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
     const [selectedUser, setSelectedUser] = useState<DBUser | null>(null);
     const [isPrinting, setIsPrinting] = useState(false);
     const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const [discount, setDiscount] = useState<number>(0);
 
     // Filter products for search
     const filteredProducts = useMemo(() => {
@@ -75,6 +79,8 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
                 productName: product.name,
                 quantity: 1,
                 priceAtPurchase: product.price,
+                costAtPurchase: product.cost, // snapshot for OrderItem
+                cost: product.cost, // for local calc
                 stock: product.stock
             }]);
         }
@@ -98,7 +104,13 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
         }
     };
 
-    const total = cart.reduce((acc, item) => acc + (item.priceAtPurchase * item.quantity), 0);
+    const subtotal = cart.reduce((acc, item) => acc + (item.priceAtPurchase * item.quantity), 0);
+    const discountAmount = (subtotal * discount) / 100;
+    const total = subtotal - discountAmount;
+
+    const totalCost = cart.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
+    const estimatedProfit = total - totalCost;
+    const estimatedProfitNoDiscount = subtotal - totalCost;
 
     const handleProcess = async () => {
         if (cart.length === 0) return;
@@ -116,7 +128,7 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
         }));
 
         const result = await createOrder(
-            itemsToProcess.map(({ stock, ...rest }) => rest),
+            itemsToProcess.map(({ stock, cost, ...rest }) => rest),
             total,
             userId,
             userEmail
@@ -364,17 +376,77 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
                     </div>
 
                     {/* Footer Totals */}
-                    <div className="p-10 bg-zinc-50 border-t flex flex-col items-end space-y-3">
-                        <div className="flex justify-between w-64 text-sm font-bold">
-                            <span className="text-zinc-400 uppercase tracking-[0.2em] text-[10px]">Subtotal Acumulado</span>
-                            <span className="text-[#122241]">${total.toLocaleString("es-AR")}</span>
+                    {/* Footer Totals */}
+                    <div className="p-10 bg-zinc-50 border-t flex flex-col md:flex-row justify-between items-start gap-8">
+                        {/* Admin Margin Analysis */}
+                        <div className="flex-1 space-y-3 print:hidden">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#122241]/40 mb-4">
+                                <TrendingUp className="h-3 w-3" />
+                                Monitor de Margen (Sólo Admin)
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 rounded-3xl bg-white border border-zinc-100 shadow-sm">
+                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">Ganancia Bruta</p>
+                                    <div className="text-sm font-black text-[#122241]">
+                                        ${Math.round(estimatedProfitNoDiscount).toLocaleString("es-AR")}
+                                    </div>
+                                    <p className="text-[8px] font-black text-green-500 uppercase tracking-tighter mt-1">
+                                        ({subtotal > 0 ? ((estimatedProfitNoDiscount / subtotal) * 100).toFixed(1) : 0}%)
+                                    </p>
+                                </div>
+                                <div className="p-4 rounded-3xl bg-white border border-zinc-100 shadow-sm border-l-4 border-l-[#facc15]">
+                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter mb-1">Ganancia Neta (Final)</p>
+                                    <div className={`text-sm font-black ${estimatedProfit < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                        ${Math.round(estimatedProfit).toLocaleString("es-AR")}
+                                    </div>
+                                    <p className={`text-[8px] font-black uppercase tracking-tighter mt-1 ${estimatedProfit < 0 ? 'text-red-400' : 'text-green-500'}`}>
+                                        ({total > 0 ? ((estimatedProfit / total) * 100).toFixed(1) : 0}%)
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex justify-between w-64 py-4 border-t border-zinc-200">
-                            <span className="text-[#122241] font-black uppercase tracking-[0.3em] text-[11px] self-center">Importe Total</span>
-                            <span className="text-3xl font-black text-[#122241] drop-shadow-sm">${total.toLocaleString("es-AR")}</span>
-                        </div>
-                        <div className="w-full text-center mt-6 border-t border-zinc-200 pt-6 hidden print:block">
-                            <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Este documento no es válido como factura - Librería Rexy</p>
+
+                        <div className="w-full md:w-80 space-y-3">
+                            <div className="flex justify-between text-sm font-bold">
+                                <span className="text-zinc-400 uppercase tracking-[0.2em] text-[10px]">Subtotal Acumulado</span>
+                                <span className="text-[#122241]">${Math.round(subtotal).toLocaleString("es-AR")}</span>
+                            </div>
+
+                            {/* Discount Input Section */}
+                            <div className="flex items-center justify-between py-3 border-t border-dashed border-zinc-200 print:hidden">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-6 w-6 rounded-lg bg-[#facc15]/10 flex items-center justify-center text-[#facc15]">
+                                        <Percent className="h-3 w-3" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#122241]">Descuento %</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={discount || ""}
+                                        onChange={(e) => setDiscount(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                                        className="w-16 h-8 text-right font-black text-[#122241] rounded-xl border-2 border-[#facc15] bg-white focus:ring-[#facc15]/30 p-1"
+                                    />
+                                    <span className="text-xs font-bold text-zinc-400">%</span>
+                                </div>
+                            </div>
+
+                            {discount > 0 && (
+                                <div className="flex justify-between text-sm font-bold text-red-500">
+                                    <span className="uppercase tracking-[0.2em] text-[10px]">Bonificación ({discount}%)</span>
+                                    <span>- ${Math.round(discountAmount).toLocaleString("es-AR")}</span>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between py-4 border-t border-zinc-200">
+                                <span className="text-[#122241] font-black uppercase tracking-[0.3em] text-[11px] self-center">Importe Total</span>
+                                <span className="text-3xl font-black text-[#122241] drop-shadow-sm">${Math.round(total).toLocaleString("es-AR")}</span>
+                            </div>
+                            <div className="w-full text-center mt-6 border-t border-zinc-200 pt-6 hidden print:block">
+                                <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Este documento no es válido como factura - Librería Rexy</p>
+                            </div>
                         </div>
                     </div>
                 </div>

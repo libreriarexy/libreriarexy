@@ -36,7 +36,8 @@ export default function CartPage() {
                 productId: i.product.id,
                 quantity: i.quantity,
                 productName: i.product.name,
-                priceAtPurchase: i.product.price
+                priceAtPurchase: i.product.price,
+                costAtPurchase: i.product.cost
             }));
 
             const result = await createOrder(orderItems, total, session.user.id, session.user.email || "");
