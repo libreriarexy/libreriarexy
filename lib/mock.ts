@@ -11,6 +11,7 @@ let PRODUCTS: Product[] = [
         category: "Papelería",
         imageUrl: "https://placehold.co/400?text=Cuaderno+A4",
         active: true,
+        cost: 2500,
     },
     {
         id: "p2",
@@ -21,6 +22,7 @@ let PRODUCTS: Product[] = [
         category: "Escritura",
         imageUrl: "https://placehold.co/400?text=Boligrafo",
         active: true,
+        cost: 600,
     },
     {
         id: "p3",
@@ -31,6 +33,7 @@ let PRODUCTS: Product[] = [
         category: "Accesorios",
         imageUrl: "https://placehold.co/400?text=Mochila",
         active: true,
+        cost: 15000,
     },
 ];
 
