@@ -11,6 +11,7 @@ export interface Product {
     images?: string[]; // Extra images list
     details?: string;   // Extended product details
     active: boolean; // Si el producto se muestra o no
+    cost: number; // Costo de compra (Col J en Sheets)
 }
 
 export interface User {
@@ -33,6 +34,7 @@ export interface OrderItem {
     productName: string; // Snapshot layout display
     quantity: number;
     priceAtPurchase: number;
+    costAtPurchase: number; // Snapshot of cost at time of sale
 }
 
 export interface Order {
@@ -41,6 +43,7 @@ export interface Order {
     userEmail: string; // Redundancia útil para sheets
     items: OrderItem[];
     total: number;
+    profit: number; // Total profit of the order (Total - Costs)
     status: OrderStatus;
     createdAt: string;
     updatedAt: string;

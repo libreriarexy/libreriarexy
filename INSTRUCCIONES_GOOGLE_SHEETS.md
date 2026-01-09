@@ -28,6 +28,7 @@ Para que WebRexy cargue tus productos desde tu hoja de cálculo, sigue estos pas
    - **G**: Imagen URL (Link a la foto principal. Si quieres más fotos, sepáralas con una coma `,` en esta misma celda).
    - **H**: Activo (`TRUE` o `FALSE`)
    - **I**: Detalle (Aquí puedes escribir una descripción larga y detallada del producto que se verá al hacer clic).
+   - **J**: Costo (Tu precio de compra, para calcular ganancias).
 3. Haz clic en el botón **"Compartir"** (arriba a la derecha).
 4. Agrega el **email de la cuenta de servicio** (el que creaste en el paso 2) como **Editor**.
 
@@ -36,10 +37,11 @@ Para que el historial de ventas y stock funcione, crea una hoja llamada **`Pedid
 - **A**: ID del Pedido
 - **B**: ID de Usuario
 - **C**: Email de Usuario
-- **D**: Total
-- **E**: Estado (`PENDING`, `PREPARED`, `SHIPPED`, `DELIVERED`, `CANCELLED`)
-- **F**: Fecha de Creación
-- **G**: Items (Deja que el sistema escriba aquí, guardará los productos en formato texto)
+- **D**: Total de la Venta
+- **E**: Ganancia (Neto)
+- **F**: Estado (`PENDING`, `PREPARED`, `SHIPPED`, `DELIVERED`, `CANCELLED`)
+- **G**: Fecha de Creación
+- **H**: Items (JSON)
 
 ## 5. Crear Hoja de Usuarios (NUEVO)
 Crea una hoja llamada **`Usuarios`** con estas columnas para gestionar a tus clientes:
@@ -69,4 +71,9 @@ Crea una hoja llamada **`Usuarios`** con estas columnas para gestionar a tus cli
    ```
 4. Reinicia la aplicación (`npm run dev`).
 
-¡Listo! Tu catálogo ahora se sincronizará con Google Sheets.
+## 7. Mails Automáticos Gratuitos (Apps Script)
+Si no quieres usar servicios externos como Resend, puedes hacer que tu Google Sheets mande los mails solo:
+1. En tu Google Sheets, ve a **Extenciones > Apps Script**.
+2. Pega el código que te proporcioné para gestionar envíos automáticos.
+3. Configura un activador tipo **"Al realizarse un cambio"** para la función `sendNotification`.
+4. El sistema usará tu propio Gmail para avisar de nuevos pedidos y registros.

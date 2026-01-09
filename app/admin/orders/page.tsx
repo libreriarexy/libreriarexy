@@ -28,7 +28,7 @@ export default async function AdminOrdersPage() {
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <Link href={`/admin/orders/${order.id}/print`}>
+                                    <Link href={`/orders/${order.id}/print`}>
                                         <Button variant="outline" size="sm">Imprimir Remito</Button>
                                     </Link>
                                     <div className="w-40">
@@ -45,8 +45,16 @@ export default async function AdminOrdersPage() {
                                         </li>
                                     ))}
                                 </ul>
-                                <div className="mt-4 font-bold text-right border-t pt-2">
-                                    Total: ${order.total.toLocaleString("es-AR")}
+                                <div className="mt-4 flex justify-between items-center border-t pt-2">
+                                    <div className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                        <div className="bg-green-500/10 text-green-600 px-2 py-1 rounded border border-green-200">
+                                            Ganancia: ${order.profit?.toLocaleString("es-AR")}
+                                            <span className="ml-1 opacity-60">({order.total > 0 ? ((order.profit / order.total) * 100).toFixed(1) : 0}%)</span>
+                                        </div>
+                                    </div>
+                                    <div className="font-bold text-lg">
+                                        Total: ${order.total.toLocaleString("es-AR")}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

@@ -31,6 +31,28 @@ function getAuth() {
     });
 }
 
+/**
+ * Parses values from Sheets that might use comma as decimal separator or have currency symbols.
+ * Handles: "1.234,56", "1330,00", "$ 1.234" etc.
+ */
+function parseSheetsNumber(val: any): number {
+    if (val === undefined || val === null || val === "") return 0;
+    let s = val.toString();
+
+    // If it has a comma and a dot, it's definitely a formatted number 1.234,56
+    // If it only has a comma, it's a decimal separator 1330,00
+    if (s.includes(',') && !s.includes('.')) {
+        s = s.replace(',', '.');
+    } else if (s.includes(',') && s.includes('.')) {
+        // Standard AR/ES format: 1.234,56 -> remove dots, replace comma
+        s = s.replace(/\./g, '').replace(',', '.');
+    }
+
+    // Clean up any remaining non-numeric chars except minus and dot
+    const clean = s.replace(/[^0-9.-]/g, "");
+    return parseFloat(clean) || 0;
+}
+
 export const googleSheetsDb: DatabaseAdapter = {
     // --- Productos ---
     async getProducts() {
@@ -40,7 +62,7 @@ export const googleSheetsDb: DatabaseAdapter = {
 
             const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
             console.log("Fetching from Spreadsheet ID:", spreadsheetId ? "DEFINED" : "UNDEFINED");
-            const range = 'Productos!A2:I'; // ID, Nombre, Desc, Precio, Stock, Cat, Imagen, Activo, Detalle
+            const range = 'Productos!A2:J'; // ID, Nombre, Desc, Precio, Stock, Cat, Imagen, Activo, Detalle, Costo
 
             const response = await sheets.spreadsheets.values.get({
                 spreadsheetId,
@@ -58,13 +80,14 @@ export const googleSheetsDb: DatabaseAdapter = {
                     id: row[0] || crypto.randomUUID(),
                     name: row[1] || "Sin Nombre",
                     description: row[2] || "",
-                    price: parseFloat(row[3]?.replace(/[^0-9.-]+/g, "")) || 0,
-                    stock: parseInt(row[4]) || 0,
+                    price: parseSheetsNumber(row[3]),
+                    stock: parseSheetsNumber(row[4]),
                     category: row[5] || "General",
                     imageUrl: allImages[0] || "",
                     images: allImages.slice(1),
                     active: row[7] === "TRUE",
                     details: row[8] || "",
+                    cost: parseSheetsNumber(row[9]),
                 };
             });
         } catch (error) {
@@ -275,22 +298,42 @@ export const googleSheetsDb: DatabaseAdapter = {
             const auth = getAuth();
             const sheets = google.sheets({ version: 'v4', auth });
             const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
-            const range = 'Pedidos!A2:G';
+            const range = 'Pedidos!A2:H';
 
             const response = await sheets.spreadsheets.values.get({ spreadsheetId, range });
             const rows = response.data.values;
             if (!rows || rows.length === 0) return [];
 
-            return rows.map((row) => ({
-                id: row[0],
-                userId: row[1],
-                userEmail: row[2],
-                total: parseFloat(row[3]) || 0,
-                status: row[4] as any,
-                createdAt: row[5],
-                updatedAt: row[5], // Map createdAt to updatedAt for now
-                items: JSON.parse(row[6] || "[]"),
-            }));
+            return rows.map((row) => {
+                // Defensive reading of columns to avoid errors if sheet is malformed
+                const id = (row[0] || "").toString().trim();
+                const userId = (row[1] || "").toString().trim();
+                const userEmail = (row[2] || "").toString().trim();
+                const total = parseSheetsNumber(row[3]);
+                const profit = parseSheetsNumber(row[4]);
+                const status = (row[5] || "PENDING") as any;
+                const createdAt = row[6] || new Date().toISOString();
+                const itemsJson = row[7] || "[]";
+
+                let items = [];
+                try {
+                    items = JSON.parse(itemsJson);
+                } catch (e) {
+                    console.error("Error parsing items for order", id, e);
+                }
+
+                return {
+                    id,
+                    userId,
+                    userEmail,
+                    total,
+                    profit,
+                    status,
+                    createdAt,
+                    updatedAt: createdAt,
+                    items,
+                };
+            });
         } catch (error) {
             console.error("Error get orders:", error);
             return [];
@@ -299,7 +342,15 @@ export const googleSheetsDb: DatabaseAdapter = {
 
     async getOrdersByUser(userId: string) {
         const orders = await this.getOrders();
-        return orders.filter(o => o.userId === userId);
+        // Get user email to be sure
+        const users = await this.getUsers();
+        const user = users.find(u => u.id === userId);
+        const userEmail = user?.email;
+
+        return orders.filter(o =>
+            o.userId === userId ||
+            (userEmail && o.userEmail === userEmail)
+        );
     },
 
     async createOrder(order: Order) {
@@ -308,20 +359,23 @@ export const googleSheetsDb: DatabaseAdapter = {
             const sheets = google.sheets({ version: 'v4', auth });
             const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
 
+            const row = [
+                order.id || crypto.randomUUID(),
+                order.userId || "",
+                order.userEmail || "",
+                order.total || 0,
+                order.profit || 0,
+                order.status || "PENDING",
+                order.createdAt || new Date().toISOString(),
+                JSON.stringify(order.items || [])
+            ];
+
             await sheets.spreadsheets.values.append({
                 spreadsheetId,
-                range: 'Pedidos!A:G',
+                range: 'Pedidos!A:H',
                 valueInputOption: 'USER_ENTERED',
                 requestBody: {
-                    values: [[
-                        order.id,
-                        order.userId,
-                        order.userEmail,
-                        order.total,
-                        order.status,
-                        order.createdAt,
-                        JSON.stringify(order.items)
-                    ]]
+                    values: [row]
                 }
             });
             return order.id;
@@ -343,7 +397,7 @@ export const googleSheetsDb: DatabaseAdapter = {
 
             await sheets.spreadsheets.values.update({
                 spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-                range: `Pedidos!E${rowNumber}`,
+                range: `Pedidos!F${rowNumber}`,
                 valueInputOption: 'USER_ENTERED',
                 requestBody: { values: [[status]] }
             });

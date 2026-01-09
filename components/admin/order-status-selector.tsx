@@ -29,12 +29,12 @@ export function OrderStatusSelector({ order }: { order: Order }) {
             disabled={isPending}
             value={order.status}
             onChange={handleChange}
-            className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full rounded-xl border-2 border-white/10 bg-[#122241] px-3 py-1 text-xs font-bold uppercase tracking-widest text-[#facc15] shadow-sm transition-all focus:border-[#facc15] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
         >
-            <option value="PENDING">Pendiente</option>
-            <option value="PREPARED">Preparado</option>
-            <option value="DELIVERED">Entregado</option>
-            <option value="CANCELLED">Cancelado</option>
+            <option value="PENDING" className="bg-white text-[#122241] font-bold">Pendiente</option>
+            <option value="PREPARED" className="bg-white text-[#122241] font-bold">Preparado</option>
+            <option value="DELIVERED" className="bg-white text-[#122241] font-bold">Entregado</option>
+            <option value="CANCELLED" className="bg-white text-[#122241] font-bold">Cancelado</option>
         </select>
     );
 }

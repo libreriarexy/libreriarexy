@@ -6,16 +6,17 @@ import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PrintButton } from "@/components/print-button"; // Client component
 
-export default async function PrintOrderPage({ params }: { params: { id: string } }) {
+export default async function PrintOrderPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: orderId } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session) {
         redirect("/login");
     }
 
-    const order = (await db.getOrders()).find(o => o.id === params.id);
+    const order = (await db.getOrders()).find(o => o.id === orderId);
 
-    if (!order) return <div>Pedido no encontrado</div>;
+    if (!order) return <div className="p-8 text-center text-red-500 font-bold">Pedido no encontrado (ID: {orderId})</div>;
 
     // Authorization Check
     const isAdmin = session.user.role === "ADMIN";
@@ -37,10 +38,13 @@ export default async function PrintOrderPage({ params }: { params: { id: string 
             {/* Remito / Invoice Content */}
             <div className="border p-8 print:border-0 print:p-0">
                 <header className="flex justify-between items-start mb-8 border-b pb-4">
-                    <div>
-                        <h1 className="text-2xl font-bold uppercase tracking-widest">WebRexy</h1>
-                        <p className="text-sm">Librería & Insumos</p>
-                        <p className="text-sm text-gray-500">Av. Siempre Viva 123</p>
+                    <div className="flex items-center gap-4">
+                        <img src="/logo.jpg" alt="Librería Rexy" className="h-20 w-auto object-contain" />
+                        <div>
+                            <h1 className="text-xl font-bold uppercase tracking-tight">Librería Rexy</h1>
+                            <p className="text-xs text-gray-500 italic">Insumos & Papelería</p>
+                            <p className="text-[10px] text-gray-400">Av. Siempre Viva 123 - Santa Fe</p>
+                        </div>
                     </div>
                     <div className="text-right">
                         <h2 className="text-2xl font-light text-gray-400">REMITO</h2>

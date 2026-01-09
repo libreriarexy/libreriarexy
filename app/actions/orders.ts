@@ -13,22 +13,30 @@ export async function createOrder(
     userEmail: string
 ) {
     try {
-        // 1. Validate Stock
+        // 1. Validate Stock and Calculate Profit
+        let totalProfit = 0;
+        const itemsWithCost: OrderItem[] = [];
+
         for (const item of items) {
             const product = await db.getProduct(item.productId);
             if (!product || product.stock < item.quantity) {
                 return { success: false, error: `Stock insuficiente para ${item.productName}` };
             }
+
+            // Calculate item profit
+            const itemProfit = (item.priceAtPurchase - product.cost) * item.quantity;
+            totalProfit += itemProfit;
+
+            itemsWithCost.push({
+                ...item,
+                costAtPurchase: product.cost
+            });
         }
 
         // 2. Deduct Stock
-        // In a real DB with transactions, this would be safer.
-        // For now we loop. If one fails mid-way, we are in trouble (mock logic limitation).
-        // We assume strict sequential processing here.
         for (const item of items) {
             const ok = await db.updateStock(item.productId, -item.quantity);
             if (!ok) {
-                // Should rollback others, but for prototype we skip complexity
                 return { success: false, error: "Error al actualizar stock al momento de pagar." };
             }
         }
@@ -38,8 +46,9 @@ export async function createOrder(
             id: crypto.randomUUID(),
             userId,
             userEmail,
-            items,
+            items: itemsWithCost,
             total,
+            profit: totalProfit,
             status: "PENDING",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { User } from "@/types";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
+import { sendEmail } from "@/lib/email";
 
 export async function registerUser(formData: FormData) {
     const name = formData.get("name") as string;
@@ -35,6 +36,22 @@ export async function registerUser(formData: FormData) {
     };
 
     await db.createUser(newUser);
+
+    // Send Welcome Email
+    const subject = "Registro Recibido - Librería Rexy";
+    const html = `
+        <div style="font-family: sans-serif; color: #122241; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f1f1f1; rounded: 20px;">
+            <h1 style="color: #122241; border-bottom: 2px solid #facc15; padding-bottom: 10px;">Hola ${name},</h1>
+            <p style="font-size: 16px; line-height: 1.6;">Te has registrado en la pagina web <strong>Librería Rexy</strong>.</p>
+            <p style="font-size: 16px; line-height: 1.6;">Espere hasta que el administrador del sitio apruebe su registro. Se le notificará una vez que se haya aprobado.</p>
+            <p style="font-size: 16px; line-height: 1.6; font-weight: bold; margin-top: 30px;">¡Gracias!</p>
+            <div style="margin-top: 40px; border-top: 1px solid #f1f1f1; padding-top: 20px; font-size: 12px; color: #999; text-align: center;">
+                Este es un mensaje automático, por favor no responda a este correo.
+            </div>
+        </div>
+    `;
+    await sendEmail(email, subject, html);
+
     return { success: true };
 }
 
