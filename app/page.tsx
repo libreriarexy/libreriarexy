@@ -5,9 +5,11 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   return (
-    <div className="min-h-screen bg-[#7e92a8]">
+    <div className="min-h-screen bg-white">
       <SiteHeader />
 
       <main className="container py-8 md:py-12 space-y-12 md:space-y-20">

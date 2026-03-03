@@ -317,7 +317,9 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
                                 <tr>
                                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241]">Cant.</th>
                                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241]">Detalle del Artículo</th>
+                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241] text-right print:hidden">Costo</th>
                                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241] text-right">Precio Unit.</th>
+                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241] text-right print:hidden">Margen</th>
                                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241] text-right">Subtotal</th>
                                     <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#122241] text-right print:hidden">Stock</th>
                                     <th className="px-8 py-5 text-center print:hidden"></th>
@@ -326,7 +328,7 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
                             <tbody className="divide-y divide-zinc-50">
                                 {cart.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-8 py-20 text-center">
+                                        <td colSpan={9} className="px-8 py-20 text-center">
                                             <div className="flex flex-col items-center gap-3 grayscale opacity-30">
                                                 <Package className="h-12 w-12 text-zinc-300" />
                                                 <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
@@ -336,40 +338,59 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
                                         </td>
                                     </tr>
                                 ) : (
-                                    cart.map((item) => (
-                                        <tr key={item.productId} className="hover:bg-zinc-50/50 transition-colors">
-                                            <td className="px-8 py-5 w-24">
-                                                <input
-                                                    type="number"
-                                                    value={item.quantity}
-                                                    onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
-                                                    className="w-full bg-transparent border-none font-black text-[#122241] focus:ring-0 p-0 text-sm"
-                                                />
-                                            </td>
-                                            <td className="px-8 py-5 font-bold text-[#122241] min-w-[300px] uppercase text-xs">
-                                                {item.productName}
-                                            </td>
-                                            <td className="px-8 py-5 text-zinc-500 font-bold text-sm text-right">
-                                                ${item.priceAtPurchase.toLocaleString("es-AR")}
-                                            </td>
-                                            <td className="px-8 py-5 font-black text-[#122241] text-right text-sm">
-                                                ${(item.priceAtPurchase * item.quantity).toLocaleString("es-AR")}
-                                            </td>
-                                            <td className="px-8 py-5 text-right print:hidden">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${item.stock <= 5 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}`}>
-                                                    {item.stock} u.
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-5 text-right print:hidden">
-                                                <button
-                                                    onClick={() => updateQuantity(item.productId, 0)}
-                                                    className="h-8 w-8 flex items-center justify-center rounded-xl bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100 transition-all ml-auto"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    cart.map((item) => {
+                                        const margin = item.priceAtPurchase - item.cost;
+                                        const marginPercent = item.cost > 0 ? ((margin / item.priceAtPurchase) * 100) : 0;
+                                        return (
+                                            <tr key={item.productId} className="hover:bg-zinc-50/50 transition-colors">
+                                                <td className="px-8 py-5 w-24">
+                                                    <input
+                                                        type="number"
+                                                        value={item.quantity}
+                                                        onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
+                                                        className="w-full bg-transparent border-none font-black text-[#122241] focus:ring-0 p-0 text-sm"
+                                                    />
+                                                </td>
+                                                <td className="px-8 py-5 font-bold text-[#122241] min-w-[300px] uppercase text-xs">
+                                                    {item.productName}
+                                                </td>
+                                                <td className="px-8 py-5 text-right print:hidden">
+                                                    <div className="text-xs font-bold text-zinc-500">
+                                                        ${item.cost.toLocaleString("es-AR")}
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5 text-zinc-500 font-bold text-sm text-right">
+                                                    ${item.priceAtPurchase.toLocaleString("es-AR")}
+                                                </td>
+                                                <td className="px-8 py-5 text-right print:hidden">
+                                                    <div className="space-y-0.5">
+                                                        <div className={`text-xs font-black ${margin >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                                            ${margin.toLocaleString("es-AR")}
+                                                        </div>
+                                                        <div className="text-[9px] font-bold text-zinc-400">
+                                                            ({marginPercent.toFixed(1)}%)
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5 font-black text-[#122241] text-right text-sm">
+                                                    ${(item.priceAtPurchase * item.quantity).toLocaleString("es-AR")}
+                                                </td>
+                                                <td className="px-8 py-5 text-right print:hidden">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${item.stock <= 5 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}`}>
+                                                        {item.stock} u.
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right print:hidden">
+                                                    <button
+                                                        onClick={() => updateQuantity(item.productId, 0)}
+                                                        className="h-8 w-8 flex items-center justify-center rounded-xl bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100 transition-all ml-auto"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -490,7 +511,7 @@ export function POSSystem({ products, users }: { products: Product[], users: DBU
                             placeholder="Buscar por nombre o ID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-12 h-14 border-zinc-100 rounded-2xl bg-zinc-50 focus-visible:ring-[#facc15]/30 text-sm font-medium"
+                            className="pl-12 h-14 border-zinc-100 rounded-2xl bg-zinc-50 focus-visible:ring-[#facc15]/30 text-sm font-medium text-[#122241]"
                         />
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300" />
                     </div>

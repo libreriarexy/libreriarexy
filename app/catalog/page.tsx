@@ -3,6 +3,8 @@ import { ProductCatalog } from "@/components/product-catalog";
 import { SiteHeader } from "@/components/site-header";
 import { Star } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CatalogPage() {
     const products = await db.getProducts();
 
@@ -10,7 +12,7 @@ export default async function CatalogPage() {
     const activeProducts = products.filter(p => p.active);
 
     return (
-        <div className="min-h-screen bg-[#7e92a8]">
+        <div className="min-h-screen bg-white">
             <SiteHeader />
 
             <main className="container py-12 space-y-8">

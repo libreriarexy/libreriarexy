@@ -53,7 +53,7 @@ export function ProductCatalog({ initialProducts }: ProductCatalogProps) {
     return (
         <div className="space-y-8">
             {/* Search and Filters Bar */}
-            <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 sticky top-20 z-40 space-y-4">
+            <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/20 space-y-4">
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Search Input */}
                     <div className="relative flex-1">

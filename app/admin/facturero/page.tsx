@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { POSSystem } from "@/components/pos-system";
 import { Receipt } from "lucide-react";
 
-export const revalidate = 0; // Don't cache admin pages
+export const dynamic = 'force-dynamic';
 
 export default async function FactureroPage() {
     const [products, users] = await Promise.all([

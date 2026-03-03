@@ -46,7 +46,7 @@ export function ProductCard({ product }: { product: Product }) {
     return (
         <>
             <Card
-                className="overflow-hidden flex flex-col h-full hover:shadow-2xl transition-all duration-500 cursor-pointer group border-none bg-[#5c6d8a] shadow-md hover:-translate-y-1"
+                className="overflow-hidden flex flex-col h-full hover:shadow-2xl transition-all duration-500 cursor-pointer group border border-zinc-100 bg-white shadow-md hover:-translate-y-1 hover:border-[#facc15] hover:shadow-[#facc15]/20"
                 onClick={() => setIsModalOpen(true)}
             >
                 <div className="relative h-64 w-full bg-white overflow-hidden">
@@ -71,40 +71,40 @@ export function ProductCard({ product }: { product: Product }) {
                             {product.category}
                         </span>
                     </div>
-                    <CardTitle className="text-base font-bold text-white line-clamp-2 min-h-[48px] leading-snug">
+                    <CardTitle className="text-base font-bold text-[#122241] line-clamp-2 min-h-[48px] leading-snug">
                         {product.name}
                     </CardTitle>
                 </CardHeader>
 
                 <CardContent className="p-5 pt-0 flex-1">
-                    <p className="text-sm text-zinc-300 line-clamp-2 leading-relaxed italic">
+                    <p className="text-sm text-zinc-500 line-clamp-2 leading-relaxed italic">
                         {product.description}
                     </p>
                 </CardContent>
 
-                <CardFooter className="p-5 flex flex-col gap-4 bg-black/10">
+                <CardFooter className="p-5 flex flex-col gap-4 border-t border-zinc-50">
                     <div className="w-full flex items-center justify-between">
                         {!mounted ? (
-                            <div className="h-6 w-24 bg-white/10 animate-pulse rounded" />
+                            <div className="h-6 w-24 bg-zinc-100 animate-pulse rounded" />
                         ) : isApproved ? (
-                            <div className="text-2xl font-black text-[#facc15] drop-shadow-sm">
-                                {priceFormatter.format(product.price)}
+                            <div className="text-2xl font-black text-[#122241] drop-shadow-sm">
+                                {priceFormatter.format(product.price).replace(",00", "")}
                             </div>
                         ) : (
-                            <div className="text-xs text-zinc-300 italic flex items-center gap-1">
+                            <div className="text-xs text-zinc-400 italic flex items-center gap-1">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#facc15] animate-pulse" />
                                 {session ? "Pendiente" : "Logueate"}
                             </div>
                         )}
                         {session?.user?.role === "ADMIN" && (
-                            <div className="text-[10px] uppercase font-bold text-zinc-400 bg-white/5 px-2 py-1 rounded">
+                            <div className="text-[10px] uppercase font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded">
                                 Stock: {product.stock > 0 ? product.stock : 0}
                             </div>
                         )}
                         {session?.user?.role !== "ADMIN" && (
                             <div className={cn(
                                 "text-[10px] uppercase font-bold px-2 py-1 rounded",
-                                product.stock > 0 ? "text-green-400 bg-green-500/10" : "text-red-400 bg-red-500/10"
+                                product.stock > 0 ? "text-green-600 bg-green-50" : "text-red-500 bg-red-50"
                             )}>
                                 {product.stock > 0 ? "Disponible" : "Sin Stock"}
                             </div>
@@ -113,17 +113,17 @@ export function ProductCard({ product }: { product: Product }) {
 
                     {isApproved && product.stock > 0 && (
                         <div className="flex items-center gap-2 w-full" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center bg-black/20 rounded-lg p-1">
+                            <div className="flex items-center bg-zinc-100 rounded-lg p-1">
                                 <Button
-                                    variant="ghost" size="icon" className="h-7 w-7 rounded-md text-white hover:bg-white/10"
+                                    variant="ghost" size="icon" className="h-7 w-7 rounded-md text-[#122241] hover:bg-white"
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                     disabled={quantity <= 1}
                                 >
                                     <Minus className="h-3 w-3" />
                                 </Button>
-                                <span className="w-8 text-center text-sm font-bold text-white">{quantity}</span>
+                                <span className="w-8 text-center text-sm font-bold text-[#122241]">{quantity}</span>
                                 <Button
-                                    variant="ghost" size="icon" className="h-7 w-7 rounded-md text-white hover:bg-white/10"
+                                    variant="ghost" size="icon" className="h-7 w-7 rounded-md text-[#122241] hover:bg-white"
                                     onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
                                     disabled={quantity >= product.stock}
                                 >
