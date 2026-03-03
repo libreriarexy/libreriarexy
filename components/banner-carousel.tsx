@@ -38,7 +38,7 @@ export function BannerCarousel() {
     const prev = () => setCurrent((prev) => (prev - 1 + banners.length) % banners.length);
 
     return (
-        <div className="relative w-full h-[350px] md:h-[550px] overflow-hidden rounded-[2.5rem] shadow-2xl group">
+        <div className="relative w-full h-[350px] md:h-[550px] overflow-hidden group bg-[#142646]">
             {banners.map((banner, index) => (
                 <div
                     key={banner.id}
@@ -51,10 +51,10 @@ export function BannerCarousel() {
                             src={banner.image}
                             alt={banner.title}
                             fill
-                            className="object-contain opacity-100"
+                            className="object-cover opacity-100"
                             priority={index === 0}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#122241]/40 via-transparent to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#122241] via-[#122241]/60 to-transparent"></div>
                     </div>
 
                     {/* Content */}

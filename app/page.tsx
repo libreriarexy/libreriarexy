@@ -12,10 +12,9 @@ export default async function Home() {
     <div className="min-h-screen bg-white">
       <SiteHeader />
 
-      <main className="container py-8 md:py-12 space-y-12 md:space-y-20">
-        {/* Banner Section */}
-        <BannerCarousel />
+      <BannerCarousel />
 
+      <main className="container pb-12 md:pb-20 space-y-12 md:space-y-20">
         {/* Presentation Text Section */}
         <section className="bg-white/95 backdrop-blur-md p-8 md:p-16 rounded-[2.5rem] shadow-2xl border border-white/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#facc15]/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
